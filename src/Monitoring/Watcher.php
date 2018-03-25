@@ -3,21 +3,44 @@
 
 namespace MilanKyncl\Monitoring;
 
+/**
+ * Class Watcher
+ * @package MilanKyncl\Monitoring
+ */
 
 class Watcher {
 
 	private $url;
 
+	private $parameters = [];
+
 	/**
 	 * Register function
+	 *
+	 * @param string $url
+	 * @param array $urlParameters
+	 *
+	 * @throws \Exception
 	 */
 
-	public function watch($url, $configParameters = []) {
+	public function watch($url, $urlParameters = []) {
 
 		$this->url = $url;
 
-		register_shutdown_function([$this, '_watcher']);
+		foreach($urlParameters as $parameter => $value) {
+
+			$this->parameters[$parameter] = $value;
+		}
+
+		if(!headers_sent())
+			register_shutdown_function([$this, '_watcher']);
+		else
+			throw new \Exception('Headers were already sent, start watcher before sending headers, please.');
 	}
+
+	/**
+	 * Internal watcher service
+	 */
 
 	private function _watcher() {
 
@@ -32,13 +55,31 @@ class Watcher {
 		}
 	}
 
+	/**
+	 * Internal function for creating request
+	 *
+	 * @param array $error
+	 *
+	 * @return array
+	 */
+
 	private function _createRequest(Array $error) {
 
 		$curl = curl_init();
 
-		/**
-		 * TODO: Resolve URL
-		 */
+		$this->parameters['error'] = json_encode($error);
+
+		$i = 0;
+
+		foreach($this->parameters as $parameter => $value) {
+
+			if($i == 0)
+				$this->url .= '?';
+			else
+				$this->url .= '&';
+
+			$this->url .= urlencode($parameter) . '=' . urlencode($value);
+		}
 
 		curl_setopt_array($curl, array(
 			CURLOPT_RETURNTRANSFER => 1,
@@ -47,12 +88,16 @@ class Watcher {
 			CURLOPT_HEADER => 1
 		));
 
-		$this->_response = curl_exec($curl);
+		$response = curl_exec($curl);
 
-		$this->_httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
 		curl_close($curl);
 
+		return [
+			'response' => $response,
+			'httpCode' => $httpCode
+		];
 	}
 
 }
