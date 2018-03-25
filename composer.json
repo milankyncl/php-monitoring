@@ -1,0 +1,20 @@
+{
+    "name": "milankyncl/php-monitoring",
+    "description": "PHP Monitoring register shutdown handler and send API Request to provided Backend service.",
+    "type": "library",
+	"keywords": "monitoring, php, logging",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "milankyncl",
+            "email": "kontakt@milankyncl.cz"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "MilanKyncl\\Monitoring\\" : "src/"
+        }
+    }
+}
